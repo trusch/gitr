@@ -26,8 +26,8 @@ To switch between variants use the same command as you used to create them.
 
 Now checkout the variant you want to work on and start creating features:
 
-    gitr variant linux-only
-    gitr feature tcp-layer
+    gitr variant linux-only    #select variant linux-only
+    gitr feature tcp-layer     #create feature tcp-layer on current variant
 
 The first command selects the variant you want to extend, the second creates a feature branch named "tcp-layer".
 Now you can start commiting your feature using normal git commands, -> git add, git commit
@@ -41,18 +41,18 @@ If you are done with your feature, upmerge it into experimental. Therefore "gitr
 
 Example:
     
-    gitr variant linux-only
-    gitr feature tcp-layer
+    gitr variant linux-only    #select variant linux-only
+    gitr feature tcp-layer     #checkout feature tcp-layer
     ...
     git add src/TCPLayer.h
     git commit -m "added tcp layer header"
     ...
-    gitr update
+    gitr update                #merge experimental into current feature
     ...
     git add src/TCPLayer.cpp
     git commit -m "added tcp layer implementation"
     ...
-    gitr upmerge
+    gitr upmerge               #merges the feature into experimental
 
 
 ###Preparing a release
@@ -63,40 +63,40 @@ In coldfixes you solve problems discovered while quality assurance.
 
 Example:
 
-    gitr variant linux-only
-    gitr testing
-    gitr init
+    gitr variant linux-only    #select variant linux-only
+    gitr testing               #checkout testing branch
+    gitr init                  #merge experimental into testing
     ...
     <test your code and find a bug in tcp layer>
     ...
-    gitr coldfix tcp-layer
+    gitr coldfix tcp-layer     #checkout coldfix tcp-layer
     ...
     <fix the bug>
     ...
-    gitr upmerge
+    gitr upmerge               #merge coldfix into testing
 
 ###Releasing the release ;)
 
 Ok, your done with all coldfixes and would swear that everything is bugless.
 Than you're ready to release! All you need to do is to merge your testing into the stable branch and tag it.
 
-    gitr variant linux-only
-    gitr stable
-    gitr init
-    git tag v1.0
+    gitr variant linux-only    #select variant linux-only
+    gitr stable                #checkout stable branch
+    gitr init                  #merge testing into stable
+    git tag v1.0               #tag the release
 
 ###Dealing with bugs in releases
 
 If you find (or get reported about) a bug in your current release you need to hotfix that. The procedure
 is similar to coldfixing the testing branch:
 
-    gitr variant linux-only
-    gitr stable
-    gitr hotfix tcp-layer
+    gitr variant linux-only   #select variant linux-only
+    gitr stable               #checkout stable branch
+    gitr hotfix tcp-layer     #checkout hotfix tcp-layer
     ...
     <fix the bug>
     ...
-    gitr upmerge
-    gitr stable
-    git tag v1.0.1
+    gitr upmerge              #merge hotfix into stable
+    gitr stable               #checkout stable branch
+    git tag v1.0.1            #tag the hotfix-release
 
