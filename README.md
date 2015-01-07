@@ -100,3 +100,39 @@ is similar to coldfixing the testing branch:
     gitr stable               #checkout stable branch
     git tag v1.0.1            #tag the hotfix-release
 
+##Working with variants
+
+###The universal variant
+
+As you probably noticed in the examples above the first command "gitr variant <variantname>" 
+selects which variant you want to work on. If you want to make changes to all your variants
+select the special variant "universal"
+If you are upmerging a feature branch from universal it is additionally merged into all other experimental branches,
+so it will be available in all your variants.
+
+Example:
+
+    gitr variant universal    #select special variant universal
+    gitr feature f1           #create universal feature f1
+    ...
+    <commit to the feature>
+    ...
+    gitr upmerge              #upmerge the feature to all experimental branches
+
+###Universal Hot- and Coldfixes
+
+Universal Hot- and Coldfixes are special. Due to the fact, that some universal features 
+could not allready be merged up into all testing or stable branches, you must merge these fixes by hand.
+
+Example:
+    
+    gitr variant universal    #select special variant universal
+    gitr testing              #checkout testing branch
+    gitr coldfix c1           #create universal coldfix c1
+    ...
+    <commit to the coldfix>
+    ...
+    gitr upmerge                        #upmerge the feature to all experimental(!) branches
+    gitr variant linux-only             #select the variant where the coldfix makes sense
+    gitr testing                        #checkout testing branch
+    git merge gitr/universal/coldfix/c1 #manually merge the coldfix
