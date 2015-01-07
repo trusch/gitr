@@ -3,7 +3,7 @@ gitr - a branching model for multiple variants
 
 gitr let you manage multiple variants of your software, and makes it simple to
 develop specific and (variant-) universal features.
-It includes a staging from feature branch to experimental to stable, and also Hot- and Coldfix branches.
+It includes a staging from feature branch to experimental to testing to stable, and also Hot- and Coldfix branches.
 
 ##Getting started
 ###Creating Variants
@@ -14,9 +14,10 @@ derive your other variants from it:
     gitr variant platform-independend #create variant "platform-independend"
     gitr variant linux-only           #create another variant "linux-only"
 
-The creation of a variant does basically two things
+The creation of a variant does basically three things
 
 * create a experimental branch for this variant
+* create a testing branch
 * create a stable branch
 
 To switch between variants use the same command as you used to create them.
@@ -99,4 +100,3 @@ is similar to coldfixing the testing branch:
     gitr stable
     git tag v1.0.1
 
- 
