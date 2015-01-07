@@ -26,8 +26,8 @@ function allExperimental {
 	git branch | egrep "$GITRPREFIX/.*/experimental" |sed s/' '//g|sed s/'*'//g|tr '\n' ' '
 }
 
-function allStaging {
-	git branch | egrep "$GITRPREFIX/.*/staging" |sed s/' '//g|sed s/'*'//g|tr '\n' ' '
+function allTesting {
+	git branch | egrep "$GITRPREFIX/.*/testing" |sed s/' '//g|sed s/'*'//g|tr '\n' ' '
 }
 
 function allStable {
@@ -50,11 +50,23 @@ function allColdfixes {
 	git branch | egrep "$GITRPREFIX/.*/coldfix/" |cut -d/ -f2,4
 }
 
+function currentFeatures {
+	git branch | egrep "$GITRPREFIX/$(currentVariant)/feature/" |cut -d/ -f4-
+}
+
+function currentHotfixes {
+	git branch | egrep "$GITRPREFIX/$(currentVariant)/hotfix/" |cut -d/ -f4-
+}
+
+function currentColdfixes {
+	git branch | egrep "$GITRPREFIX/$(currentVariant)/coldfix/" |cut -d/ -f4-
+}
+
 # createVariant <variant>
 function createVariant {
 	VARIANT=$1
 	git checkout -b $GITRPREFIX/$VARIANT/experimental 2>/dev/null
-	git checkout -b $GITRPREFIX/$VARIANT/staging 2>/dev/null
+	git checkout -b $GITRPREFIX/$VARIANT/testing 2>/dev/null
 	git checkout -b $GITRPREFIX/$VARIANT/stable 2>/dev/null
 	
 	git checkout $GITRPREFIX/$VARIANT/experimental 2>/dev/null
@@ -109,27 +121,27 @@ function upmerge {
 		;;
 		"experimental")
 			if [[ $VARIANT != 'universal' ]]; then
-				git checkout $GITRPREFIX/$VARIANT/staging 2>&1 >/dev/null
+				git checkout $GITRPREFIX/$VARIANT/testing 2>&1 >/dev/null
 				git merge $SOURCEBRANCH 2>&1 >/dev/null || exit 1
-				echo "upmerged $VARIANT/experimental into $VARIANT/staging"
+				echo "upmerged $VARIANT/experimental into $VARIANT/testing"
 			else
-				for exp in $(allStaging); do
+				for exp in $(allTesting); do
 					git checkout $exp 2>&1 >/dev/null
 					git merge $SOURCEBRANCH 2>&1 >/dev/null || exit 1
-					echo "upmerged universal/experimental into $(currentVariant)/staging"
+					echo "upmerged universal/experimental into $(currentVariant)/testing"
 				done
 			fi
 		;;
-		"staging")
+		"testing")
 			if [[ $VARIANT != 'universal' ]]; then
 				git checkout $GITRPREFIX/$VARIANT/stable 2>&1 >/dev/null
 				git merge $SOURCEBRANCH 2>&1 >/dev/null || exit 1
-				echo "upmerged $VARIANT/staging into $VARIANT/stable"
+				echo "upmerged $VARIANT/testing into $VARIANT/stable"
 			else
-				for exp in $(allStaging); do
+				for exp in $(allTesting); do
 					git checkout $exp 2>&1 >/dev/null
 					git merge $SOURCEBRANCH 2>&1 >/dev/null || exit 1
-					echo "upmerged universal/staging into $(currentVariant)/stable"
+					echo "upmerged universal/testing into $(currentVariant)/stable"
 				done
 			fi
 		;;
@@ -138,9 +150,9 @@ function upmerge {
 				git checkout $GITRPREFIX/$VARIANT/stable 2>&1 >/dev/null
 				git merge $SOURCEBRANCH 2>&1 >/dev/null || exit 1
 				echo "upmerged $VARIANT/hotfix/$FEATURE into $VARIANT/stable"
-				git checkout $GITRPREFIX/$VARIANT/staging 2>&1 >/dev/null
+				git checkout $GITRPREFIX/$VARIANT/testing 2>&1 >/dev/null
 				git merge $SOURCEBRANCH 2>&1 >/dev/null || exit 1
-				echo "upmerged $VARIANT/hotfix/$FEATURE into $VARIANT/staging"
+				echo "upmerged $VARIANT/hotfix/$FEATURE into $VARIANT/testing"
 				git checkout $GITRPREFIX/$VARIANT/experimental 2>&1 >/dev/null
 				git merge $SOURCEBRANCH 2>&1 >/dev/null || exit 1
 				echo "upmerged $VARIANT/hotfix/$FEATURE into $VARIANT/experimental"
@@ -155,14 +167,14 @@ function upmerge {
 		;;
 		"coldfix")
 			if [[ $VARIANT != 'universal' ]]; then
-				git checkout $GITRPREFIX/$VARIANT/staging 2>&1 >/dev/null
+				git checkout $GITRPREFIX/$VARIANT/testing 2>&1 >/dev/null
 				git merge $SOURCEBRANCH 2>&1 >/dev/null || exit 1
-				echo "upmerged $VARIANT/hotfix/$FEATURE into $VARIANT/staging"
+				echo "upmerged $VARIANT/hotfix/$FEATURE into $VARIANT/testing"
 				git checkout $GITRPREFIX/$VARIANT/experimental 2>&1 >/dev/null
 				git merge $SOURCEBRANCH 2>&1 >/dev/null || exit 1
 				echo "upmerged $VARIANT/hotfix/$FEATURE into $VARIANT/experimental"
 			else
-				echo "NOTICE: You must merge this coldfix into the target staging branch by hand!"
+				echo "NOTICE: You must merge this coldfix into the target testing branch by hand!"
 				for exp in $(allExperimental); do
 					git checkout $exp 2>&1 >/dev/null
 					git merge $SOURCEBRANCH 2>&1 >/dev/null || exit 1
@@ -188,8 +200,8 @@ function update {
 			git merge $GITRPREFIX/$VARIANT/stable  2>&1 >/dev/null || exit 1
 			echo "merged $VARIANT/stable into $VARIANT/experimental"
 
-			git merge $GITRPREFIX/$VARIANT/staging  2>&1 >/dev/null || exit 1
-			echo "merged $VARIANT/staging into $VARIANT/experimental"
+			git merge $GITRPREFIX/$VARIANT/testing  2>&1 >/dev/null || exit 1
+			echo "merged $VARIANT/testing into $VARIANT/experimental"
 
 			features=$(allFeatures|egrep "^$VARIANT"|cut -d/ -f2)
 			for feature in $features; do
@@ -215,11 +227,11 @@ function update {
 				echo "merged hotfix $hotfix into $VARIANT/stable"
 			done
 		;;
-		"staging")
+		"testing")
 			coldfixes=$(allHotfixes|egrep "^$VARIANT"|cut -d/ -f2)
 			for coldfix in $coldfixes; do
 				git merge $GITRPREFIX/$VARIANT/coldfix/$coldfix 2>&1 >/dev/null || exit 1
-				echo "merged coldfix $coldfix into $VARIANT/staging"
+				echo "merged coldfix $coldfix into $VARIANT/testing"
 			done
 		;;
 		"hotfix")
@@ -227,7 +239,7 @@ function update {
 			echo "merged $VARIANT/stable into hotfix $FEATURE"			
 		;;
 		"coldfix")
-			git merge $GITRPREFIX/$VARIANT/staging 2>&1 >/dev/null || exit 1
+			git merge $GITRPREFIX/$VARIANT/testing 2>&1 >/dev/null || exit 1
 			echo "merged $VARIANT/experimental into coldfix $FEATURE"
 		;;
 	esac
@@ -242,12 +254,12 @@ function init {
 		"feature"|"experimental"|"hotfix"|"coldfix")
 			update ;;
 		"stable")
-			git merge $GITRPREFIX/$VARIANT/staging 2>&1 >/dev/null || exit 1
-			echo "merged $VARIANT/staging into $VARIANT/stable"	
+			git merge $GITRPREFIX/$VARIANT/testing 2>&1 >/dev/null || exit 1
+			echo "merged $VARIANT/testing into $VARIANT/stable"	
 		;;
-		"staging")
+		"testing")
 			git merge $GITRPREFIX/$VARIANT/experimental 2>&1 >/dev/null || exit 1
-			echo "merged $VARIANT/experimental into $VARIANT/staging"		
+			echo "merged $VARIANT/experimental into $VARIANT/testing"		
 		;;
 	esac	
 }
@@ -311,10 +323,10 @@ function command_ls {
 			else
 				echo "    experimental"
 			fi
-			if [[ $(currentBranch) == $branch && $TYPE == "staging" ]]; then
-				echo "*   staging"
+			if [[ $(currentBranch) == $branch && $TYPE == "testing" ]]; then
+				echo "*   testing"
 			else
-				echo "    staging"
+				echo "    testing"
 			fi
 			if [[ $(currentBranch) == $branch && $TYPE == "stable" ]]; then
 				echo "*   stable"
@@ -367,7 +379,7 @@ function help {
 	echo -e "\tcoldfix <coldfix> [<variant>] # checkout coldfix"
 	echo -e "\tupmerge                       # upmerge to correct destinations"
 	echo -e "\tupdate                        # fetch commits from the correct sources"
-	echo -e "\tinit                          # init stable or staging from underlying layer"
+	echo -e "\tinit                          # init stable or testing from underlying layer"
 }
 
 COMMAND=$1
@@ -381,12 +393,12 @@ case $COMMAND in
 	"update")       update 			    ;;
 	"init")         init			    ;;
 	"experimental") git checkout $GITRPREFIX/$(currentVariant)/experimental;;
-	"staging")      git checkout $GITRPREFIX/$(currentVariant)/staging;;
+	"testing")      git checkout $GITRPREFIX/$(currentVariant)/testing;;
 	"stable")       git checkout $GITRPREFIX/$(currentVariant)/stable;;
 	"variants")     allVariants;;
-	"features")     allFeatures;;
-	"hotfixes")     allHotfixes;;
-	"coldfixes")    allColdfixes;;
+	"features")     currentFeatures;;
+	"hotfixes")     currentHotfixes;;
+	"coldfixes")    currentColdfixes;;
 	"ls")			command_ls;;
 	"rm")			git branch -d $GITRPREFIX/$1;;
 	"help")         help $*;;
